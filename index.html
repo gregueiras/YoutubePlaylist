@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Add to Watch Later playlist</title>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+    <style>
+    .btn-tech {
+        color: #2c3e50;
+        border: solid 2px #2c3e50;
+        background: transparent;
+        transition: all 0.3s ease-in-out;
+        margin: 20px;
+        border-radius: 20% 20% 20% 20%;
+    }
+
+    .btn-tech:hover,
+    .btn-tech:active,
+    .btn-tech.active {
+        color: #FFFFFF;
+        background: #2c3e50;
+        cursor: pointer;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="watch_later">
+        <div id="buttons">
+            <label>Enter Video ID you want to add to Watch Later playlist :
+                <input id="video-id" value='T4ZE2KtoFzs' type="text" />
+            </label>
+        </div>
+        <div class="like">
+            <a id="fb-link">
+                <span class="btn-tech fa-stack fa-3x">
+                  <i class="fa fa-thumbs-up fa-stack-1x"></i>
+                </span>
+            </a>
+        </div>
+        <div id="playlist-container">
+            <span id="status"></span>
+        </div>
+        <p>
+            <a href="https://www.youtube.com/playlist?list=WL">check your watch later playlist</a>
+        </p>
+    </div>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <script>
+    var OAUTH2_CLIENT_ID = '28993181493-c9o6hdll3di0ssvebfd4atf13edqfu9g.apps.googleusercontent.com';
+    var OAUTH2_SCOPES = [
+        'https://www.googleapis.com/auth/youtube'
+    ];
+    var init = false;
+    googleApiClientReady = function() {
+        gapi.auth.init(function() {
+            window.setTimeout(checkAuth, 1);
+        });
+    }
+
+    function checkAuth() {
+        gapi.auth.authorize({
+            client_id: OAUTH2_CLIENT_ID,
+            scope: OAUTH2_SCOPES,
+            immediate: true
+        }, handleAuthResult);
+    }
+    // Handle the result of a gapi.auth.authorize() call.
+    function handleAuthResult(authResult) {
+
+        $('.like').off('click');
+        $('.like').click(function(e) {
+            if (authResult && !authResult.error) {
+                addVideoToPlaylist();
+            } else {
+                init = true;
+                gapi.auth.authorize({
+                    client_id: OAUTH2_CLIENT_ID,
+                    scope: OAUTH2_SCOPES,
+                    immediate: false
+                }, handleAuthResult);
+            }
+            return false;
+        });
+
+        if (authResult && !authResult.error) {
+            // Authorization was successful. Hide authorization prompts and show
+            // content that should be visible after authorization succeeds.
+            $('.pre-auth').hide();
+            $('.post-auth').show();
+            loadAPIClientInterfaces();
+
+            $('#add_to_wl').click(function(e) {
+                addVideoToPlaylist();
+            });
+        }
+    }
+
+    function loadAPIClientInterfaces() {
+        gapi.client.load('youtube', 'v3', function() {
+            if (init) {
+                init = false;
+                addVideoToPlaylist();
+            }
+        });
+    }
+    // Add a video ID specified in the form to the playlist.
+    function addVideoToPlaylist() {
+        addToPlaylist($('#video-id').val());
+    }
+    // Add a video to a playlist. The "startPos" and "endPos" values let you
+    // start and stop the video at specific times when the video is played as
+    // part of the playlist. However, these values are not set in this example.
+    function addToPlaylist(id, startPos, endPos) {
+        var details = {
+            videoId: id,
+            kind: 'youtube#video'
+        }
+        if (startPos != undefined) {
+            details['startAt'] = startPos;
+        }
+        if (endPos != undefined) {
+            details['endAt'] = endPos;
+        }
+        var request = gapi.client.youtube.playlistItems.insert({
+            part: 'snippet',
+            resource: {
+                snippet: {
+                    playlistId: "WL",
+                    resourceId: details
+                }
+            }
+        });
+        request.execute(function(response) {
+            console.log(response);
+            if (!response.code) {
+                $('#status').html('<pre>Succesfully added the video : ' + JSON.stringify(response.result) + '</pre>');
+            } else if (response.code == 409) {
+                $('#status').html('<p>Conflict : this video is already on your Watch Later playlist</p>');
+            } else if (response.code == 404) {
+                $('#status').html('<p>Not Found : this video hasnt been found</p>');
+            } else {
+                $('#status').html('<p>Error : code ' + response.code + '</p>');
+            }
+        });
+    }
+    </script>
+    <script src="https://apis.google.com/js/client.js?onload=googleApiClientReady"></script>
+</body>
+
+</html>

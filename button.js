@@ -17,7 +17,9 @@ function execute(tabs) {
     let ids = getVideoIds(tabs);
     let URL = createURL(ids);
     closeYoutubeTabs(tabs);
-    openPlaylist(URL);
+    if (ids.length != 0) {
+        openPlaylist(URL);
+    }
 }
 
 function getVideoIds(tabs) {
@@ -26,9 +28,9 @@ function getVideoIds(tabs) {
     //ReGex by Andrei Zisu (https://goo.gl/vTqaC9)
     let regEx = /(?:youtube(?:-nocookie)?\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
 
-    for(let tab of tabs) {
+    for (let tab of tabs) {
         let url = tab.url;
-        
+
         let id = url.match(regEx);
         ids.push(id[1]);
     }
@@ -48,11 +50,12 @@ function createURL(ids) {
 
 function closeYoutubeTabs(tabs) {
     tabs.forEach(tab => {
-        chrome.tabs.remove(tab.id);        
+        chrome.tabs.remove(tab.id);
     });
 }
 
 function openPlaylist(URL) {
-    chrome.tabs.create({'url': URL}, function(tab) {
-    });
+    chrome.tabs.create({
+        'url': URL
+    }, function (tab) {});
 }

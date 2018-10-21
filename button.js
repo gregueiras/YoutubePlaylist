@@ -48,6 +48,9 @@ function createURL(ids) {
     return URL;
 }
 
+/**
+ * Closes all the other youtube video pages
+ */
 function closeYoutubeTabs(tabs) {
     tabs.forEach(tab => {
         chrome.tabs.remove(tab.id);

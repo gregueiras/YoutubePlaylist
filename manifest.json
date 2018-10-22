@@ -16,7 +16,6 @@
       "icons": {
           "512": "icon.png"
       },
-      //Icon created by Max Hille (https://goo.gl/wAztGC)
 
       "permissions": ["tabs"]
 
